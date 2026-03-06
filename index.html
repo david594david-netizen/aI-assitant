@@ -2,70 +2,51 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>大衛林老師：研究方法與統計助教</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大衛林老師：研究方法與統計 AI 助教</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; flex-direction: column; height: 100vh; margin: 0; }
-        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; line-height: 1.5; }
-        .user { align-self: flex-end; background: #007bff; color: white; }
-        .bot { align-self: flex-start; background: white; border: 1px solid #ddd; }
+        :root { --primary-color: #2c3e50; --accent-color: #18bc9c; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: #ecf0f1; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* 設定區塊 */
+        #setup-area { background: var(--primary-color); color: white; padding: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        #api-key-input { padding: 8px; width: 300px; border-radius: 4px; border: none; margin-left: 10px; }
+        .save-btn { padding: 8px 15px; background: var(--accent-color); border: none; color: white; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+        /* 對話區塊 */
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 85%; padding: 12px 18px; border-radius: 18px; line-height: 1.6; position: relative; word-wrap: break-word; }
+        .user { align-self: flex-end; background: #3498db; color: white; border-bottom-right-radius: 2px; }
+        .bot { align-self: flex-start; background: white; color: #333; border: 1px solid #ddd; border-bottom-left-radius: 2px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
+        
+        /* 輸入區塊 */
         #input-area { padding: 20px; background: white; border-top: 1px solid #ddd; display: flex; gap: 10px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #user-input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 25px; outline: none; }
+        #send-btn { padding: 10px 25px; background: var(--primary-color); color: white; border: none; border-radius: 25px; cursor: pointer; transition: 0.3s; }
+        #send-btn:hover { background: #34495e; }
+        #send-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* 狀態顯示 */
+        .status { font-size: 12px; color: #7f8c8d; margin-top: 5px; }
     </style>
 </head>
 <body>
-    <h2 style="text-align:center; color:#333;">🎓 大衛林老師：研究方法助教</h2>
+
+    <div id="setup-area">
+        <strong>🎓 大衛林老師 AI 助教</strong> 
+        <input type="password" id="api-key-input" placeholder="請貼上您的 Google Gemini API Key">
+        <button class="save-btn" onclick="saveKey()">儲存並開始</button>
+        <div style="font-size: 11px; margin-top: 5px; opacity: 0.8;">
+            * 您的 API Key 將僅儲存在瀏覽器中，不會傳送到第三方伺服器。
+        </div>
+    </div>
+
     <div id="chat-container">
-        <div class="msg bot">你好，我是大衛林老師。在我們開始討論你的社會科學研究之前，請先告訴我：你的研究題目是什麼？目前遇到了統計操作的困難，還是對研究設計感到迷惘？</div>
+        <div class="msg bot">
+            同學好，我是大衛林老師。在開始之前，請先於上方輸入您的 <strong>Gemini API Key</strong>。<br><br>
+            設定完成後，請告訴我你的研究題目，或者你目前在 SPSS 遇到什麼困難？
+        </div>
     </div>
+
     <div id="input-area">
-        <input type="text" id="user-input" placeholder="輸入您的學術問題..." onkeypress="if(event.keyCode==13) sendMessage()">
-        <button onclick="sendMessage()">送出</button>
-    </div>
-
-    <script>
-        // ⚠️ 請在此處貼上你在 Google AI Studio 產生的 API Key
-        const API_KEY = '請在此處貼上你的API_KEY'; 
-        const SYSTEM_PROMPT = `你是一位資深的大學教授「大衛林老師」。你精通研究方法、SPSS 統計分析與長照領域。請以專業、嚴謹且具啟發性的口吻指導學生。遇到統計問題先問變項尺度，解釋 SPSS 時提供路徑。`;
-
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const container = document.getElementById('chat-container');
-            if (!input.value) return;
-
-            // 顯示使用者訊息
-            const userDiv = document.createElement('div');
-            userDiv.className = 'msg user';
-            userDiv.innerText = input.value;
-            container.appendChild(userDiv);
-            
-            const userMsg = input.value;
-            input.value = '';
-
-            // 呼叫 Gemini API
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [
-                            { role: "user", parts: [{ text: SYSTEM_PROMPT + "\n\n學生問：" + userMsg }] }
-                        ]
-                    })
-                });
-                const data = await response.json();
-                const botText = data.candidates[0].content.parts[0].text;
-
-                const botDiv = document.createElement('div');
-                botDiv.className = 'msg bot';
-                botDiv.innerText = botText;
-                container.appendChild(botDiv);
-                container.scrollTop = container.scrollHeight;
-            } catch (e) {
-                alert("連線出錯，請檢查 API Key 是否正確。");
-            }
-        }
-    </script>
-</body>
-</html>
+        <input type
